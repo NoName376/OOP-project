@@ -41,7 +41,7 @@ public class Teacher extends Employee implements IResearcher {
     }
 
     public void putMark(Student s, Course c, Mark m) {
-        s.getTranscript().addRecord(c, m);
+        s.addMark(c, m);
         System.out.println("Mark put for student " + s.getFullName() + " in course " + c.getName());
     }
 
@@ -58,6 +58,15 @@ public class Teacher extends Employee implements IResearcher {
         System.out.println("Complaint sent against " + target.getFullName() + " with urgency " + urgency);
     }
 
+    public void addRating(int score) {
+        this.ratings.add(score);
+    }
+
+    public double getAverageRating() {
+        if (ratings.isEmpty()) return 0.0;
+        return ratings.stream().mapToInt(Integer::intValue).average().orElse(0.0);
+    }
+
     public void setResearchComponent(ResearchDecorator researchComponent) {
         this.researchComponent = researchComponent;
     }
@@ -71,4 +80,5 @@ public class Teacher extends Employee implements IResearcher {
     private TeacherTitle title;
     private List<Course> courses;
     private ResearchDecorator researchComponent;
+    private List<Integer> ratings = new ArrayList<>();
 }

@@ -1,9 +1,12 @@
 package console.pages;
 
+import academic.Lesson;
 import console.pagescore.Page;
 
 import users.Student;
 import academic.Course;
+
+import java.util.List;
 
 public class SchedulePage extends Page {
     public SchedulePage() {
@@ -27,6 +30,14 @@ public class SchedulePage extends Page {
         } else {
             for (Course course : courses) {
                 console.getRenderer().renderData(course.getCourseId(), course.getName() + " (" + course.getCredits() + " credits)");
+                List<Lesson> lessons = course.getLessons();
+                if (lessons.isEmpty()) {
+                    console.getRenderer().renderData("  ", "No lessons scheduled yet.");
+                } else {
+                    for (academic.Lesson l : lessons) {
+                        console.getRenderer().renderData("  " + l.getType(), l.getTopic() + " [" + l.getRoom() + "]");
+                    }
+                }
             }
         }
         console.getInput().waitForEnter();

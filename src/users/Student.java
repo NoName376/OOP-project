@@ -25,8 +25,8 @@ public class Student extends User implements IResearcher {
     }
 
     public boolean registerForCourse(Course c) throws CreditLimitExceededException {
-        if (totalCredits + c.getCredits() > 21) {
-            throw new CreditLimitExceededException("Credit limit exceeded (max 21 credits)");
+        if (totalCredits + c.getCredits() > 30) {
+            throw new CreditLimitExceededException("Credit limit exceeded (max 30 credits)");
         }
         currentCourses.add(c);
         totalCredits += c.getCredits();
@@ -42,6 +42,11 @@ public class Student extends User implements IResearcher {
     }
 
     public void rateTeacher(Teacher t, int score) {
+        t.addRating(score);
+    }
+
+    public int getTotalCredits() {
+        return totalCredits;
     }
 
     public void setResearchSupervisor(IResearcher supervisor) throws IndexTooLowException {
@@ -95,8 +100,27 @@ public class Student extends User implements IResearcher {
         return transcript;
     }
 
+    public void addMark(Course c, Mark m) {
+        transcript.addRecord(c, m);
+        if (m.getTotal() < 50) {
+            failedCount++;
+        }
+    }
+
+    public int getFailedCount() {
+        return failedCount;
+    }
+
     public double getGpa() {
-        return gpa;
+        return transcript.calculateGPA();
+    }
+
+    public void addAttendance(Course c) {
+        attendance.put(c, attendance.getOrDefault(c, 0) + 1);
+    }
+
+    public int getAttendance(Course c) {
+        return attendance.getOrDefault(c, 0);
     }
 
     private DegreeType degreeType;
@@ -108,4 +132,5 @@ public class Student extends User implements IResearcher {
     private List<Course> currentCourses;
     private IResearcher researchSupervisor;
     private ResearchDecorator researchComponent;
+    private java.util.Map<Course, Integer> attendance = new java.util.HashMap<>();
 }

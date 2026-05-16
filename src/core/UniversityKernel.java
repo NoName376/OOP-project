@@ -53,10 +53,15 @@ public class UniversityKernel implements Serializable {
         return logger;
     }
 
+    public List<research.ResearchProject> getResearchProjects() {
+        return researchProjects;
+    }
+
     private UniversityKernel() {
         this.users = new ArrayList<>();
         this.courses = new ArrayList<>();
         this.news = new ArrayList<>();
+        this.researchProjects = new ArrayList<>();
         this.logger = new SystemLogger();
     }
 
@@ -64,5 +69,6 @@ public class UniversityKernel implements Serializable {
     private List<User> users;
     private List<Course> courses;
     private List<NewsEntry> news;
+    private List<research.ResearchProject> researchProjects;
     private SystemLogger logger;
 }

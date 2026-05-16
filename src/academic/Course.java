@@ -56,11 +56,20 @@ public class Course implements Serializable {
         return "Course [" + courseId + ": " + name + "]";
     }
 
+    public List<Lesson> getLessons() {
+        return lessons;
+    }
+
+    public void addLesson(Lesson l) {
+        this.lessons.add(l);
+    }
+
     private String courseId;
     private String name;
     private int credits;
     private CourseStatus status;
     private List<Teacher> instructors;
+    private List<Lesson> lessons = new ArrayList<>();
     private String syllabus;
     private int targetYear;
 }
