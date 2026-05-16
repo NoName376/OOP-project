@@ -8,6 +8,7 @@ import java.util.List;
 import research.IResearcher;
 import research.ResearchDecorator;
 import research.ResearchPaper;
+import core.UniversityKernel;
 
 public class Teacher extends Employee {
     public Teacher(String id, String username, String passwordHash, String firstName, String lastName, String email,
@@ -29,9 +30,19 @@ public class Teacher extends Employee {
         return courses;
     }
 
+    public void addCourse(Course course) {
+        if (!courses.contains(course)) {
+            courses.add(course);
+        }
+    }
+
     public List<Student> viewStudents(String courseId) {
-        // Placeholder implementation
-        return new ArrayList<>();
+        return UniversityKernel.getInstance().getUsers().stream()
+                .filter(u -> u instanceof Student)
+                .map(u -> (Student) u)
+                .filter(s -> s.viewCourses().stream()
+                        .anyMatch(c -> c.getCourseId().equals(courseId)))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     public void sendComplaint(Student target, int urgency) {

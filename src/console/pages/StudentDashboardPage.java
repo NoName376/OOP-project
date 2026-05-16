@@ -17,8 +17,7 @@ public class StudentDashboardPage extends Page {
         addAction("Course Registration", () -> new CourseRegistrationPage().display());
         addAction("Course Catalog", this::viewCatalog);
         addAction("Academic Progress", this::viewProgress);
-        addAction("View Transcript", this::viewTranscript);
-        addAction("Get Transcript", this::getTranscript);
+        addAction("Transcript", this::viewTranscript);
         addAction("My Teachers", this::viewTeachers);
         addAction("Researching", this::handleResearch);
         addAction("Research Supervisor", this::assignSupervisor);
@@ -111,12 +110,6 @@ public class StudentDashboardPage extends Page {
         console.getInput().waitForEnter();
     }
 
-    private void getTranscript() {
-        Student student = (Student) console.getCurrentUser();
-        console.getRenderer().renderHeader("OFFICIAL TRANSCRIPT");
-        console.getRenderer().renderMessage("Generating official document for " + student.getFullName() + "...");
-        viewTranscript();
-    }
 
     private void viewCatalog() {
         List<Course> courses = core.UniversityKernel.getInstance().getCourses();

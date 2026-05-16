@@ -13,6 +13,7 @@ import users.ManagerType;
 import users.Student;
 import users.Teacher;
 import users.TeacherTitle;
+import users.UserFactory;
 import utils.DataStorage;
 
 public class Main {
@@ -30,10 +31,10 @@ public class Main {
             );
             UniversityKernel.getInstance().getUsers().add(defaultAdmin);
 
-            Student testStudent = new Student("24B031692", "student", "student", "Paren", "Prostoi", "pivo@kbtu.kz", DegreeType.BACHELOR, 2);
+            Student testStudent = UserFactory.createStudent("24B031692", "student", "student", "Paren", "Prostoi", "pivo@kbtu.kz", DegreeType.BACHELOR, 2);
             UniversityKernel.getInstance().getUsers().add(testStudent);
 
-            Manager testManager = new Manager("M001", "manager", "123", "Assel", "Berikova", "a_berikova@kbtu.kz", 500000, LocalDate.now(), "OR", ManagerType.OR);
+            Manager testManager = UserFactory.createManager("M001", "manager", "123", "Assel", "Berikova", "a_berikova@kbtu.kz", 500000, "OR", ManagerType.OR);
             UniversityKernel.getInstance().getUsers().add(testManager);
 
             Course oop = new Course("CS101", "Object-Oriented Programming", 3, CourseStatus.MAJOR, 2);
@@ -47,9 +48,9 @@ public class Main {
             UniversityKernel.getInstance().getCourses().add(calc);
             UniversityKernel.getInstance().getCourses().add(algo);
 
-            users.Teacher teacher = new users.Teacher(
+            users.Teacher teacher = UserFactory.createTeacher(
                 "TCH-001", "teacher", "teacher", "Pakita", "Shamoi", "p.shamoi@kbtu.kz",
-                500000, java.time.LocalDate.now(), "FIT", users.TeacherTitle.PROFESSOR
+                500000, "FIT", users.TeacherTitle.PROFESSOR
             );
             UniversityKernel.getInstance().getUsers().add(teacher);
             oop.addInstructor(teacher);

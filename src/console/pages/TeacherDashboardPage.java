@@ -161,6 +161,7 @@ public class TeacherDashboardPage extends Page {
             console.getInput().waitForEnter();
             return;
         }
+        new ResearchCabinetPage().display();
     }
 
     private void sendComplaint() {

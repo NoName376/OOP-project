@@ -49,6 +49,7 @@ public class Course implements Serializable {
 
     public void addInstructor(Teacher t) {
         this.instructors.add(t);
+        t.addCourse(this);
     }
 
     @Override
