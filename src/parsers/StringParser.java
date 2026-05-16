@@ -1,4 +1,4 @@
-package ui.parsers;
+package parsers;
 
 public class StringParser implements IInputParser<String> {
     public StringParser(boolean allowEmpty) {

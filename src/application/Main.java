@@ -1,7 +1,7 @@
 package application;
 
 import core.UniversityKernel;
-import ui.core.UniversityConsole;
+import console.core.UniversityConsole;
 import users.Admin;
 import utils.DataStorage;
 

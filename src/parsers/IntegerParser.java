@@ -1,4 +1,4 @@
-package ui.parsers;
+package parsers;
 
 public class IntegerParser implements IInputParser<Integer> {
     public IntegerParser(int min, int max) {
