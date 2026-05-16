@@ -40,7 +40,6 @@ public class Student extends User {
     }
 
     public void rateTeacher(Teacher t, int score) {
-        System.out.println("Rating teacher " + t.getFullName() + " with score: " + score);
     }
 
     public void setResearchSupervisor(IResearcher supervisor) throws IndexTooLowException {
@@ -54,10 +53,21 @@ public class Student extends User {
         return researchSupervisor;
     }
 
-    public int getYearOfStudy() { return yearOfStudy; }
-    public DegreeType getDegreeType() { return degreeType; }
-    public Transcript getTranscript() { return transcript; }
-    public double getGpa() { return gpa; }
+    public int getYearOfStudy() {
+        return yearOfStudy;
+    }
+
+    public DegreeType getDegreeType() {
+        return degreeType;
+    }
+
+    public Transcript getTranscript() {
+        return transcript;
+    }
+
+    public double getGpa() {
+        return gpa;
+    }
 
     private DegreeType degreeType;
     private int yearOfStudy;

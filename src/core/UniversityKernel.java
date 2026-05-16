@@ -1,13 +1,14 @@
 package core;
 
 import academic.Course;
+import infrastructure.NewsEntry;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import users.User;
 
 public class UniversityKernel implements Serializable {
-    public static synchronized UniversityKernel getInstance() {
+    public static UniversityKernel getInstance() {
         if (instance == null) {
             instance = new UniversityKernel();
         }
@@ -25,22 +26,43 @@ public class UniversityKernel implements Serializable {
                 .orElse(null);
     }
 
+    public User findUserByUsername(String username) {
+        return users.stream()
+                .filter(u -> u.getUsername().equals(username))
+                .findFirst()
+                .orElse(null);
+    }
+
     public void logAction(User u, String action) {
         logger.log(u.getFullName() + " performed action: " + action);
     }
 
-    public List<User> getUsers() { return users; }
-    public List<Course> getCourses() { return courses; }
-    public SystemLogger getLogger() { return logger; }
+    public List<User> getUsers() {
+        return users;
+    }
+
+    public List<Course> getCourses() {
+        return courses;
+    }
+
+    public List<NewsEntry> getNews() {
+        return news;
+    }
+
+    public SystemLogger getLogger() {
+        return logger;
+    }
 
     private UniversityKernel() {
-        users = new ArrayList<>();
-        courses = new ArrayList<>();
-        logger = new SystemLogger();
+        this.users = new ArrayList<>();
+        this.courses = new ArrayList<>();
+        this.news = new ArrayList<>();
+        this.logger = new SystemLogger();
     }
 
     private static UniversityKernel instance;
     private List<User> users;
     private List<Course> courses;
+    private List<NewsEntry> news;
     private SystemLogger logger;
 }

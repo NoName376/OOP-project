@@ -14,13 +14,33 @@ public class Course implements Serializable {
         this.instructors = new ArrayList<>();
     }
 
-    public String getCourseId() { return courseId; }
-    public String getName() { return name; }
-    public int getCredits() { return credits; }
-    public CourseStatus getStatus() { return status; }
-    public List<Teacher> getInstructors() { return instructors; }
-    public String getSyllabus() { return syllabus; }
-    public void setSyllabus(String syllabus) { this.syllabus = syllabus; }
+    public String getCourseId() {
+        return courseId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getCredits() {
+        return credits;
+    }
+
+    public CourseStatus getStatus() {
+        return status;
+    }
+
+    public List<Teacher> getInstructors() {
+        return instructors;
+    }
+
+    public String getSyllabus() {
+        return syllabus;
+    }
+
+    public void setSyllabus(String syllabus) {
+        this.syllabus = syllabus;
+    }
 
     public void addInstructor(Teacher t) {
         this.instructors.add(t);

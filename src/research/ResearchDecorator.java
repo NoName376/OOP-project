@@ -17,7 +17,6 @@ public class ResearchDecorator implements IResearcher {
         if (papers.isEmpty()) return 0;
         List<ResearchPaper> sortedPapers = new ArrayList<>(papers);
         sortedPapers.sort((p1, p2) -> Integer.compare(p2.getCitations(), p1.getCitations()));
-        
         int h = 0;
         for (int i = 0; i < sortedPapers.size(); i++) {
             if (sortedPapers.get(i).getCitations() >= i + 1) {
@@ -43,10 +42,18 @@ public class ResearchDecorator implements IResearcher {
         papers.add(p);
     }
 
-    public User getUser() { return user; }
+    public User getUser() {
+        return user;
+    }
+
     @Override
-    public List<ResearchPaper> getPapers() { return papers; }
-    public List<ResearchProject> getProjects() { return projects; }
+    public List<ResearchPaper> getPapers() {
+        return papers;
+    }
+
+    public List<ResearchProject> getProjects() {
+        return projects;
+    }
 
     private User user;
     private List<ResearchPaper> papers;
