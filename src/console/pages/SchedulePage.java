@@ -22,22 +22,17 @@ public class SchedulePage extends Page {
         }
 
         Student student = (Student) console.getCurrentUser();
-        var courses = student.viewCourses();
+        List<academic.Lesson> schedule = student.getSchedule();
 
-        console.getRenderer().renderHeader("Current Courses");
-        if (courses.isEmpty()) {
-            console.getRenderer().renderMessage("You are not registered for any courses.");
+        console.getRenderer().renderHeader("My Weekly Schedule");
+        if (schedule.isEmpty()) {
+            console.getRenderer().renderMessage("You have no scheduled lessons.");
         } else {
-            for (Course course : courses) {
-                console.getRenderer().renderData(course.getCourseId(), course.getName() + " (" + course.getCredits() + " credits)");
-                List<Lesson> lessons = course.getLessons();
-                if (lessons.isEmpty()) {
-                    console.getRenderer().renderData("  ", "No lessons scheduled yet.");
-                } else {
-                    for (academic.Lesson l : lessons) {
-                        console.getRenderer().renderData("  " + l.getType(), l.getTopic() + " [" + l.getRoom() + "]");
-                    }
-                }
+            // Sort by day of week
+            schedule.sort(java.util.Comparator.comparing(academic.Lesson::getDay));
+            for (academic.Lesson lesson : schedule) {
+                console.getRenderer().renderData(lesson.getDay().toString() + " " + lesson.getTime(), 
+                    lesson.toString());
             }
         }
         console.getInput().waitForEnter();

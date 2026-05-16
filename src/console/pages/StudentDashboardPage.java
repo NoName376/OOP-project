@@ -11,19 +11,37 @@ import java.util.ArrayList;
 
 public class StudentDashboardPage extends Page {
     public StudentDashboardPage() {
-        super("WSP Student Desktop");
+        super("WSP Desktop");
+        addAction("My Cabinet", () -> new MyProfilePage().display());
         addAction("My Schedule", () -> new SchedulePage().display());
         addAction("Course Registration", () -> new CourseRegistrationPage().display());
         addAction("Course Catalog", this::viewCatalog);
         addAction("Academic Progress", this::viewProgress);
         addAction("View Transcript", this::viewTranscript);
         addAction("Get Transcript", this::getTranscript);
-        addAction("My Teachers & Ratings", this::viewTeachers);
-        addAction("Research Cabinet", () -> new ResearchCabinetPage().display());
-        addAction("Assign Research Supervisor", this::assignSupervisor);
+        addAction("My Teachers", this::viewTeachers);
+        addAction("Researching", this::handleResearch);
+        addAction("Research Supervisor", this::assignSupervisor);
         addAction("View Attendance", this::viewAttendance);
         addAction("News", () -> new NewsPage().display());
         addAction("Logout", () -> console.logout());
+    }
+
+    private void handleResearch() {
+        Student student = (Student) console.getCurrentUser();
+        if (student.getResearchComponent() != null) {
+            new ResearchCabinetPage().display();
+        } else {
+            console.getRenderer().renderHeader("Researcher Application");
+            console.getRenderer().renderMessage("You are not currently a researcher. Do you want to apply?");
+            console.getRenderer().renderMenu(java.util.List.of("Yes, I want to become a researcher", "No, back"));
+            int choice = console.getInput().read("Option", new parsers.IntegerParser(0, 2));
+            if (choice == 1) {
+                student.setResearchComponent(new research.ResearchDecorator(student));
+                console.getRenderer().renderSuccess("Congratulations! You are now a researcher.");
+                console.getInput().waitForEnter();
+            }
+        }
     }
 
     private void assignSupervisor() {

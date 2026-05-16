@@ -80,7 +80,7 @@ public class UserManagementPage extends Page {
         
         int year = console.getInput().read("Year of Study", new IntegerParser(1, 4));
 
-        Student student = new Student(id, username, password, firstName, lastName, email, degree, year);
+        Student student = UserFactory.createStudent(id, username, password, firstName, lastName, email, degree, year);
         UniversityKernel.getInstance().getUsers().add(student);
         console.getRenderer().renderSuccess("Student added!");
         console.getInput().waitForEnter();
@@ -101,7 +101,7 @@ public class UserManagementPage extends Page {
         int titleIdx = console.getInput().read("Select Title", new IntegerParser(1, 3));
         TeacherTitle title = TeacherTitle.values()[titleIdx - 1];
 
-        Teacher teacher = new Teacher(id, username, password, firstName, lastName, email, salary, LocalDate.now(), dept, title);
+        Teacher teacher = UserFactory.createTeacher(id, username, password, firstName, lastName, email, salary, dept, title);
         UniversityKernel.getInstance().getUsers().add(teacher);
         console.getRenderer().renderSuccess("Teacher added!");
         console.getInput().waitForEnter();
@@ -113,14 +113,20 @@ public class UserManagementPage extends Page {
         
         if (user == null) {
             console.getRenderer().renderError("User not found!");
-        } else if (user instanceof Admin) {
+            return;
+        }
+
+        if (user instanceof Admin) {
             console.getRenderer().renderError("Admins cannot be researchers!");
-        } else if (user instanceof Teacher) {
-            Teacher t = (Teacher) user;
-            if (t.getResearchComponent() != null) {
+            return;
+        }
+
+        if (user instanceof Employee) {
+            Employee e = (Employee) user;
+            if (e.getResearchComponent() != null) {
                 console.getRenderer().renderError("Already a researcher!");
             } else {
-                t.setResearchComponent(new ResearchDecorator(t));
+                e.setResearchComponent(new ResearchDecorator(e));
                 console.getRenderer().renderSuccess(username + " is now a researcher!");
             }
         } else if (user instanceof Student) {

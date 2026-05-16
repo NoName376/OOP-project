@@ -1,5 +1,7 @@
 package users;
 
 public enum ManagerType {
-    OR, DEPT
+    OR,
+    DEPARTMENT,
+    DEAN_OFFICE
 }
