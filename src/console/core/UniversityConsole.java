@@ -1,5 +1,7 @@
 package console.core;
 
+import console.pages.AdminPage;
+import console.pages.LoginPage;
 import utils.ConsoleRenderer;
 import utils.InputSystem;
 import users.User;
@@ -23,9 +25,15 @@ public class UniversityConsole {
         renderer.renderMessage("Welcome to WSP");
         while (running) {
             if (currentUser == null) {
-                InitialPage();
+                initialPage();
+                if (currentUser == null) {
+                    break;
+                }
             } else {
                 showRolePage(currentUser);
+                if (currentUser != null && running) {
+                    logout();
+                }
             }
         }
 
@@ -54,13 +62,28 @@ public class UniversityConsole {
         return renderer;
     }
 
-    private void InitialPage() {
-        // страница если не авторизован челик
+    public boolean isRunning() {
+        return running;
+    }
+
+    private void initialPage() {
+        var loginPage = new LoginPage();
+
+        loginPage.display();
     }
     private void showRolePage(User user) {
         String role = currentUser.getClass().getSimpleName();
 
-        // показать страницу с ролью как-то
+        switch (role) {
+            case "Admin":
+                new AdminPage().display();
+                break;
+
+            default:
+                renderer.renderError("Page for " + role + " not implemented.");
+                logout();
+                break;
+        }
     }
 
     private static UniversityConsole instance;

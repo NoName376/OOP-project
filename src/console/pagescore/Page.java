@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import console.core.UniversityConsole;
 import parsers.IntegerParser;
+import users.User;
 
 public abstract class Page {
     public Page(String title) {
@@ -15,7 +16,7 @@ public abstract class Page {
     }
 
     public void display() {
-        while (true) {
+        while (console.isRunning()) {
             console.getRenderer().renderHeader(title);
             console.getRenderer().renderMenu(labels);
 
@@ -24,6 +25,7 @@ public abstract class Page {
                 return;
 
             try {
+                User userBefore = console.getCurrentUser();
                 if (console.getCurrentUser() != null) {
                     UniversityKernel.getInstance().logAction(
                             console.getCurrentUser(),
@@ -31,6 +33,9 @@ public abstract class Page {
                     );
                 }
                 actions.get(choice - 1).start();
+                if (userBefore != console.getCurrentUser()) {
+                    return;
+                }
             } catch (Exception e) {
                 console.getRenderer().renderError(e.getMessage());
             }

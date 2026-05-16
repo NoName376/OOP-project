@@ -16,7 +16,7 @@ public class ConsoleRenderer {
         for (int i = 0; i < options.size(); i++) {
             System.out.println(" [" + (i + 1) + "] " + options.get(i));
         }
-        System.out.println(" [0] Exit/Back");
+        System.out.println(" [0] Close");
         System.out.println("-".repeat(40));
     }
 
