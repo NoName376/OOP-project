@@ -16,7 +16,89 @@ public class ResearchCabinetPage extends Page {
         addAction("View Supervisor", this::viewSupervisor);
         addAction("Sort My Papers", this::sortPapersMenu);
         addAction("Join Research Project", this::joinProject);
+        addAction("Cite a Paper", this::citePaper);
+        addAction("Manage Paper Authors", this::manageAuthors);
+        addAction("View Citation Format", this::viewCitationFormat);
         addAction("University Research Info", this::universityResearchMenu);
+    }
+
+    private void viewCitationFormat() {
+        IResearcher researcher = getResearcher();
+        if (researcher == null) return;
+
+        List<ResearchPaper> papers = researcher.getPapers();
+        if (papers.isEmpty()) {
+            console.getRenderer().renderError("No papers to format.");
+            return;
+        }
+
+        console.getRenderer().renderHeader("Select Paper for Formatting");
+        for (int i = 0; i < papers.size(); i++) console.getRenderer().renderData((i+1) + ". " + papers.get(i).getName(), "");
+        int choice = console.getInput().read("Option", new parsers.IntegerParser(0, papers.size()));
+        if (choice == 0) return;
+
+        ResearchPaper selected = papers.get(choice - 1);
+        console.getRenderer().renderHeader("Citation Formats for: " + selected.getName());
+        console.getRenderer().renderData("APA", selected.getCitationFormat(false));
+        console.getRenderer().renderData("BibTeX", selected.getCitationFormat(true));
+        console.getInput().waitForEnter();
+    }
+
+    private void citePaper() {
+        IResearcher researcher = getResearcher();
+        if (researcher == null) return;
+
+        List<ResearchPaper> myPapers = researcher.getPapers();
+        if (myPapers.isEmpty()) {
+            console.getRenderer().renderError("You need at least one paper to cite others.");
+            return;
+        }
+
+        List<ResearchPaper> allPapers = new ArrayList<>();
+        for (users.User u : core.UniversityKernel.getInstance().getUsers()) {
+            if (u instanceof IResearcher) allPapers.addAll(((IResearcher) u).getPapers());
+        }
+
+        if (allPapers.isEmpty()) {
+            console.getRenderer().renderMessage("No papers available in the university.");
+            return;
+        }
+
+        console.getRenderer().renderHeader("Select Your Paper (the citing one)");
+        for (int i = 0; i < myPapers.size(); i++) console.getRenderer().renderData((i+1) + ". " + myPapers.get(i).getName(), "");
+        int myChoice = console.getInput().read("Option", new parsers.IntegerParser(0, myPapers.size()));
+        if (myChoice == 0) return;
+
+        console.getRenderer().renderHeader("Select Paper to Cite");
+        for (int i = 0; i < allPapers.size(); i++) console.getRenderer().renderData((i+1) + ". " + allPapers.get(i).getName(), "");
+        int targetChoice = console.getInput().read("Option", new parsers.IntegerParser(0, allPapers.size()));
+        if (targetChoice == 0) return;
+
+        allPapers.get(targetChoice - 1).addCitation(myPapers.get(myChoice - 1));
+        console.getRenderer().renderMessage("Citation added successfully!");
+        console.getInput().waitForEnter();
+    }
+
+    private void manageAuthors() {
+        IResearcher researcher = getResearcher();
+        if (researcher == null) return;
+
+        List<ResearchPaper> myPapers = researcher.getPapers();
+        if (myPapers.isEmpty()) {
+            console.getRenderer().renderError("You have no papers.");
+            return;
+        }
+
+        console.getRenderer().renderHeader("Select Paper to Manage Authors");
+        for (int i = 0; i < myPapers.size(); i++) console.getRenderer().renderData((i+1) + ". " + myPapers.get(i).getName(), "");
+        int choice = console.getInput().read("Option", new parsers.IntegerParser(0, myPapers.size()));
+        if (choice == 0) return;
+
+        ResearchPaper selected = myPapers.get(choice - 1);
+        String newAuthor = console.getInput().readString("Enter new author name");
+        selected.addAuthor(newAuthor);
+        console.getRenderer().renderMessage("Author added!");
+        console.getInput().waitForEnter();
     }
 
     private void universityResearchMenu() {
@@ -67,9 +149,7 @@ public class ResearchCabinetPage extends Page {
     private void viewTopResearchers() {
         List<IResearcher> researchers = new ArrayList<>();
         for (users.User u : core.UniversityKernel.getInstance().getUsers()) {
-            if (u instanceof IResearcher) {
-                researchers.add((IResearcher) u);
-            }
+            if (u instanceof IResearcher) researchers.add((IResearcher) u);
         }
 
         if (researchers.isEmpty()) {
@@ -78,8 +158,26 @@ public class ResearchCabinetPage extends Page {
             return;
         }
 
+        console.getRenderer().renderHeader("Top Researchers Selection");
+        console.getRenderer().renderMenu(java.util.List.of("Global (All Schools)", "By Specific School"));
+        int choice = console.getInput().read("Option", new parsers.IntegerParser(0, 2));
+
+        if (choice == 2) {
+            String school = console.getInput().readString("Enter School/Department Name (e.g., FIT, BS)");
+            researchers.removeIf(r -> {
+                if (r instanceof users.Employee) return !((users.Employee) r).getDepartment().equalsIgnoreCase(school);
+                return true; // For now, only employees have departments in this system
+            });
+        }
+
+        if (researchers.isEmpty()) {
+            console.getRenderer().renderError("No researchers found for this criteria.");
+            console.getInput().waitForEnter();
+            return;
+        }
+
         researchers.sort(Comparator.comparingInt(IResearcher::getHIndex).reversed());
-        console.getRenderer().renderHeader("Top Cited Researchers (h-index)");
+        console.getRenderer().renderHeader("Top Cited Researchers");
         for (int i = 0; i < Math.min(researchers.size(), 5); i++) {
             IResearcher r = researchers.get(i);
             String name = (r instanceof users.User) ? ((users.User) r).getFullName() : "Unknown";
@@ -181,8 +279,12 @@ public class ResearchCabinetPage extends Page {
     }
 
     private IResearcher getResearcher() {
-        if (console.getCurrentUser() instanceof IResearcher) {
-            return (IResearcher) console.getCurrentUser();
+        users.User user = console.getCurrentUser();
+        if (user instanceof users.Student) {
+            return ((users.Student) user).getResearchComponent();
+        }
+        if (user instanceof users.Employee) {
+            return ((users.Employee) user).getResearchComponent();
         }
         return null;
     }

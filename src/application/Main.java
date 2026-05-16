@@ -1,13 +1,18 @@
 package application;
 
-import core.UniversityKernel;
-import console.core.UniversityConsole;
-import users.Admin;
-import users.Student;
-import users.DegreeType;
 import academic.Course;
 import academic.CourseStatus;
+import console.core.UniversityConsole;
+import core.UniversityKernel;
 import infrastructure.NewsEntry;
+import java.time.LocalDate;
+import users.Admin;
+import users.DegreeType;
+import users.Manager;
+import users.ManagerType;
+import users.Student;
+import users.Teacher;
+import users.TeacherTitle;
 import utils.DataStorage;
 
 public class Main {
@@ -25,15 +30,15 @@ public class Main {
             );
             UniversityKernel.getInstance().getUsers().add(defaultAdmin);
 
-            Student testStudent = new Student(
-                "STU-001", "student", "student", "Ivan", "Ivanov", "ivan@kbtu.kz",
-                DegreeType.BACHELOR, 2
-            );
+            Student testStudent = new Student("24B031692", "student", "student", "Paren", "Prostoi", "pivo@kbtu.kz", DegreeType.BACHELOR, 2);
             UniversityKernel.getInstance().getUsers().add(testStudent);
 
+            Manager testManager = new Manager("M001", "manager", "123", "Assel", "Berikova", "a_berikova@kbtu.kz", 500000, LocalDate.now(), "OR", ManagerType.OR);
+            UniversityKernel.getInstance().getUsers().add(testManager);
+
             Course oop = new Course("CS101", "Object-Oriented Programming", 3, CourseStatus.MAJOR, 2);
-            oop.addLesson(new academic.Lesson(academic.LessonType.LECTURE, "Introduction to OOP", "Room 401"));
-            oop.addLesson(new academic.Lesson(academic.LessonType.PRACTICE, "Classes and Objects", "Room 402"));
+            oop.addLesson(new academic.Lesson(academic.LessonType.LECTURE, "OOP Lections"));
+            oop.addLesson(new academic.Lesson(academic.LessonType.PRACTICE, "OOP practice"));
 
             Course calc = new Course("MATH101", "Calculus I", 5, CourseStatus.MAJOR, 1);
             Course algo = new Course("CS201", "Algorithms", 4, CourseStatus.MAJOR, 2);

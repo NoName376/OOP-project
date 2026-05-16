@@ -2,7 +2,9 @@ package console.core;
 
 import console.pages.AdminPage;
 import console.pages.LoginPage;
+import console.pages.ManagerPage;
 import console.pages.StudentDashboardPage;
+import console.pages.TeacherDashboardPage;
 import utils.ConsoleRenderer;
 import utils.InputSystem;
 import users.User;
@@ -48,9 +50,11 @@ public class UniversityConsole {
 
     public void logout() {
         this.currentUser = null;
+        DataStorage.save();
     }
     public void exit() {
         this.running = false;
+        DataStorage.save();
     }
 
     public User getCurrentUser() {
@@ -81,6 +85,12 @@ public class UniversityConsole {
                 break;
             case "Student":
                 new StudentDashboardPage().display();
+                break;
+            case "Manager":
+                new ManagerPage().display();
+                break;
+            case "Teacher":
+                new TeacherDashboardPage().display();
                 break;
 
             default:

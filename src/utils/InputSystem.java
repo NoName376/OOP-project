@@ -20,6 +20,10 @@ public class InputSystem {
         }
     }
 
+    public String readString(String prompt) {
+        return read(prompt, new parsers.StringParser(false));
+    }
+
     public void waitForEnter() {
         System.out.println("\nPress Enter to continue...");
         scanner.nextLine();

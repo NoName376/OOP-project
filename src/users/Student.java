@@ -28,6 +28,9 @@ public class Student extends User implements IResearcher {
         if (totalCredits + c.getCredits() > 30) {
             throw new CreditLimitExceededException("Credit limit exceeded (max 30 credits)");
         }
+        if (failedCount > 3) {
+            throw new RuntimeException("Cannot register for courses: you have failed more than 3 times.");
+        }
         currentCourses.add(c);
         totalCredits += c.getCredits();
         return true;
@@ -123,6 +126,27 @@ public class Student extends User implements IResearcher {
         return attendance.getOrDefault(c, 0);
     }
 
+    public List<academic.Lesson> getSchedule() {
+        return schedule;
+    }
+
+    public void addCourseSchedule(academic.Course c) {
+        java.util.Random rnd = new java.util.Random();
+        java.time.DayOfWeek[] days = java.time.DayOfWeek.values();
+        List<users.Teacher> teachers = c.getInstructors();
+        
+        for (academic.Lesson template : c.getLessons()) {
+            academic.Lesson assigned = new academic.Lesson(template.getType(), template.getTopic());
+            java.time.DayOfWeek day = days[rnd.nextInt(6)];
+            String room = "Room " + (100 + rnd.nextInt(400));
+            users.Teacher t = teachers.isEmpty() ? null : teachers.get(rnd.nextInt(teachers.size()));
+            String time = (8 + rnd.nextInt(10)) + ":00";
+            
+            assigned.assign(day, room, t, time);
+            this.schedule.add(assigned);
+        }
+    }
+
     private DegreeType degreeType;
     private int yearOfStudy;
     private double gpa;
@@ -133,4 +157,5 @@ public class Student extends User implements IResearcher {
     private IResearcher researchSupervisor;
     private ResearchDecorator researchComponent;
     private java.util.Map<Course, Integer> attendance = new java.util.HashMap<>();
+    private List<academic.Lesson> schedule = new java.util.ArrayList<>();
 }

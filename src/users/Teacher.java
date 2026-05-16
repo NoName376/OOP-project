@@ -9,7 +9,7 @@ import research.IResearcher;
 import research.ResearchDecorator;
 import research.ResearchPaper;
 
-public class Teacher extends Employee implements IResearcher {
+public class Teacher extends Employee {
     public Teacher(String id, String username, String passwordHash, String firstName, String lastName, String email,
                    double salary, LocalDate hireDate, String department, TeacherTitle title) {
         super(id, username, passwordHash, firstName, lastName, email, salary, hireDate, department);
@@ -18,26 +18,6 @@ public class Teacher extends Employee implements IResearcher {
         if (title == TeacherTitle.PROFESSOR) {
             this.researchComponent = new ResearchDecorator(this);
         }
-    }
-
-    @Override
-    public int getHIndex() {
-        return researchComponent != null ? researchComponent.getHIndex() : 0;
-    }
-
-    @Override
-    public List<ResearchPaper> getPapers() {
-        return researchComponent != null ? researchComponent.getPapers() : new ArrayList<>();
-    }
-
-    @Override
-    public void printPapers(java.util.Comparator<ResearchPaper> sorter) {
-        if (researchComponent != null) researchComponent.printPapers(sorter);
-    }
-
-    @Override
-    public void addPaper(ResearchPaper p) {
-        if (researchComponent != null) researchComponent.addPaper(p);
     }
 
     public void putMark(Student s, Course c, Mark m) {

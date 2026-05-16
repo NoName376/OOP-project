@@ -63,6 +63,7 @@ public class CourseRegistrationPage extends Page {
         Course selected = available.get(choice - 1);
         try {
             student.registerForCourse(selected);
+            student.addCourseSchedule(selected);
             console.getRenderer().renderMessage("Successfully registered for " + selected.getName());
         } catch (CreditLimitExceededException e) {
             console.getRenderer().renderError(e.getMessage());
