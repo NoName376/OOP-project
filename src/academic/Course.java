@@ -6,12 +6,17 @@ import java.util.List;
 import users.Teacher;
 
 public class Course implements Serializable {
-    public Course(String courseId, String name, int credits, CourseStatus status) {
+    public Course(String courseId, String name, int credits, CourseStatus status, int targetYear) {
         this.courseId = courseId;
         this.name = name;
         this.credits = credits;
         this.status = status;
+        this.targetYear = targetYear;
         this.instructors = new ArrayList<>();
+    }
+
+    public int getTargetYear() {
+        return targetYear;
     }
 
     public String getCourseId() {
@@ -57,4 +62,5 @@ public class Course implements Serializable {
     private CourseStatus status;
     private List<Teacher> instructors;
     private String syllabus;
+    private int targetYear;
 }

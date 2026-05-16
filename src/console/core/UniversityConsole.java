@@ -2,6 +2,7 @@ package console.core;
 
 import console.pages.AdminPage;
 import console.pages.LoginPage;
+import console.pages.StudentDashboardPage;
 import utils.ConsoleRenderer;
 import utils.InputSystem;
 import users.User;
@@ -77,6 +78,9 @@ public class UniversityConsole {
         switch (role) {
             case "Admin":
                 new AdminPage().display();
+                break;
+            case "Student":
+                new StudentDashboardPage().display();
                 break;
 
             default:

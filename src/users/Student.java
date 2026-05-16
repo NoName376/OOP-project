@@ -8,8 +8,10 @@ import exceptions.IndexTooLowException;
 import java.util.ArrayList;
 import java.util.List;
 import research.IResearcher;
+import research.ResearchDecorator;
+import research.ResearchPaper;
 
-public class Student extends User {
+public class Student extends User implements IResearcher {
     public Student(String id, String username, String passwordHash, String firstName, String lastName, String email,
                    DegreeType degreeType, int yearOfStudy) {
         super(id, username, passwordHash, firstName, lastName, email);
@@ -53,6 +55,34 @@ public class Student extends User {
         return researchSupervisor;
     }
 
+    @Override
+    public int getHIndex() {
+        return researchComponent != null ? researchComponent.getHIndex() : 0;
+    }
+
+    @Override
+    public List<ResearchPaper> getPapers() {
+        return researchComponent != null ? researchComponent.getPapers() : new ArrayList<>();
+    }
+
+    @Override
+    public void printPapers(java.util.Comparator<ResearchPaper> sorter) {
+        if (researchComponent != null) researchComponent.printPapers(sorter);
+    }
+
+    @Override
+    public void addPaper(ResearchPaper p) {
+        if (researchComponent != null) researchComponent.addPaper(p);
+    }
+
+    public void setResearchComponent(ResearchDecorator researchComponent) {
+        this.researchComponent = researchComponent;
+    }
+
+    public ResearchDecorator getResearchComponent() {
+        return researchComponent;
+    }
+
     public int getYearOfStudy() {
         return yearOfStudy;
     }
@@ -77,4 +107,5 @@ public class Student extends User {
     private Transcript transcript;
     private List<Course> currentCourses;
     private IResearcher researchSupervisor;
+    private ResearchDecorator researchComponent;
 }

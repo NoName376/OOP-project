@@ -7,7 +7,8 @@ public class ConsoleRenderer {
     }
 
     public void renderHeader(String title) {
-        System.out.println("\n" + "=".repeat(40));
+        System.out.println("\n".repeat(20));
+        System.out.println("=".repeat(40));
         System.out.println("  " + title.toUpperCase());
         System.out.println("=".repeat(40));
     }
