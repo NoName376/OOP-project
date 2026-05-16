@@ -26,31 +26,27 @@ public class Main {
             UniversityKernel.getInstance().getUsers().add(defaultAdmin);
 
             Student testStudent = new Student(
-                "STU-001", "student", "student", "Ivan", "Ivanov", "ivan@kbtu.kz",
-                DegreeType.BACHELOR, 2
+                "ST-001",
+                "student",
+                "student",
+                "John",
+                "Doe",
+                "student@university.edu",
+                DegreeType.BACHELOR,
+                1
             );
+            
+            Course oop = new Course("CS-201", "Object-Oriented Programming", 5, CourseStatus.MAJOR, 1);
+            try {
+                testStudent.registerForCourse(oop);
+            } catch (Exception e) {}
+
             UniversityKernel.getInstance().getUsers().add(testStudent);
-
-            Course oop = new Course("CS101", "Object-Oriented Programming", 3, CourseStatus.MAJOR, 2);
-            oop.addLesson(new academic.Lesson(academic.LessonType.LECTURE, "Introduction to OOP", "Room 401"));
-            oop.addLesson(new academic.Lesson(academic.LessonType.PRACTICE, "Classes and Objects", "Room 402"));
-
-            Course calc = new Course("MATH101", "Calculus I", 5, CourseStatus.MAJOR, 1);
-            Course algo = new Course("CS201", "Algorithms", 4, CourseStatus.MAJOR, 2);
-
-            UniversityKernel.getInstance().getCourses().add(oop);
-            UniversityKernel.getInstance().getCourses().add(calc);
-            UniversityKernel.getInstance().getCourses().add(algo);
-
-            users.Teacher teacher = new users.Teacher(
-                "TCH-001", "teacher", "teacher", "Pakita", "Shamoi", "p.shamoi@kbtu.kz",
-                500000, java.time.LocalDate.now(), "FIT", users.TeacherTitle.PROFESSOR
-            );
-            UniversityKernel.getInstance().getUsers().add(teacher);
-            oop.addInstructor(teacher);
-
-            UniversityKernel.getInstance().getResearchProjects().add(new research.ResearchProject("AI in Education"));
-
+            
+            UniversityKernel.getInstance().getNews().add(new NewsEntry(
+                "Welcome to the new Semester!",
+                "We are glad to see you all. Registration for courses is now open."
+            ));
 
             DataStorage.save();
         }

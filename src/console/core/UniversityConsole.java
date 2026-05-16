@@ -3,6 +3,7 @@ package console.core;
 import console.pages.AdminPage;
 import console.pages.LoginPage;
 import console.pages.StudentDashboardPage;
+import console.pages.TeacherDashboardPage;
 import utils.ConsoleRenderer;
 import utils.InputSystem;
 import users.User;
@@ -81,6 +82,9 @@ public class UniversityConsole {
                 break;
             case "Student":
                 new StudentDashboardPage().display();
+                break;
+            case "Teacher":
+                new TeacherDashboardPage().display();
                 break;
 
             default:
