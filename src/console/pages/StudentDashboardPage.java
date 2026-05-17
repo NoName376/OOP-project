@@ -1,14 +1,13 @@
 package console.pages;
 
 import academic.AttendanceStatus;
-import console.pagescore.Page;
-
-import users.Student;
 import academic.Course;
 import academic.Mark;
+import console.pagescore.Page;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
+import users.Student;
 
 public class StudentDashboardPage extends Page {
     public StudentDashboardPage() {
