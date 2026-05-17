@@ -8,26 +8,13 @@ import java.util.List;
 public class ResearchProject implements Serializable {
     public ResearchProject(String topic) {
         this.topic = topic;
-        this.participants = new ArrayList<>();
-        this.publishedPapers = new ArrayList<>();
     }
 
-    public void addParticipant(IResearcher r) throws NonResearcherException {
-        if (r == null) {
-            throw new NonResearcherException("Participant must be a researcher");
-        }
-        participants.add(r);
-    }
-
-    public void publishPaper(ResearchPaper p) {
-        publishedPapers.add(p);
-    }
-
+    public void addParticipant(IResearcher r) throws NonResearcherException {}
+    public void publishPaper(ResearchPaper p) {}
     public String getTopic() { return topic; }
-    public List<IResearcher> getParticipants() { return participants; }
-    public List<ResearchPaper> getPublishedPapers() { return publishedPapers; }
+    public List<IResearcher> getParticipants() { return new ArrayList<>(); }
+    public List<ResearchPaper> getPublishedPapers() { return new ArrayList<>(); }
 
     private String topic;
-    private List<IResearcher> participants;
-    private List<ResearchPaper> publishedPapers;
 }
