@@ -7,7 +7,7 @@ import parsers.*;
 
 public class LoginPage extends Page {
     public LoginPage() {
-        super("System Login");
+        super("Login");
 
         addAction("Login", this::handleLogin);
     }
@@ -26,4 +26,3 @@ public class LoginPage extends Page {
         }
     }
 }
-

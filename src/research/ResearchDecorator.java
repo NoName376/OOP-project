@@ -3,59 +3,62 @@ package research;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import users.User;
 
 public class ResearchDecorator implements IResearcher {
+    private final User targetUser;
+    private final List<ResearchPaper> researchPapersList;
+    private final List<ResearchProject> activeProjectsList;
+
     public ResearchDecorator(User user) {
-        this.user = user;
-        this.papers = new ArrayList<>();
-        this.projects = new ArrayList<>();
-    }
-
-    @Override
-    public int getHIndex() {
-        if (papers.isEmpty()) return 0;
-        List<ResearchPaper> sortedPapers = new ArrayList<>(papers);
-        sortedPapers.sort((p1, p2) -> Integer.compare(p2.getCitations(), p1.getCitations()));
-        int h = 0;
-        for (int i = 0; i < sortedPapers.size(); i++) {
-            if (sortedPapers.get(i).getCitations() >= i + 1) {
-                h = i + 1;
-            } else {
-                break;
-            }
-        }
-        return h;
-    }
-
-    @Override
-    public void printPapers(Comparator<ResearchPaper> sorter) {
-        List<ResearchPaper> sortedPapers = new ArrayList<>(papers);
-        sortedPapers.sort(sorter);
-        for (ResearchPaper p : sortedPapers) {
-            System.out.println(p);
-        }
+        this.targetUser = user;
+        this.researchPapersList = new ArrayList<>();
+        this.activeProjectsList = new ArrayList<>();
     }
 
     @Override
     public void addPaper(ResearchPaper p) {
-        papers.add(p);
-    }
-
-    public User getUser() {
-        return user;
+        if (p != null) {
+            this.researchPapersList.add(p);
+        }
     }
 
     @Override
     public List<ResearchPaper> getPapers() {
-        return papers;
+        return this.researchPapersList;
     }
 
     public List<ResearchProject> getProjects() {
-        return projects;
+        return this.activeProjectsList;
     }
 
-    private User user;
-    private List<ResearchPaper> papers;
-    private List<ResearchProject> projects;
+    public User getUser() {
+        return this.targetUser;
+    }
+
+    @Override
+    public int getHIndex() {
+        if (researchPapersList.isEmpty()) {
+            return 0;
+        }
+        
+        List<Integer> citations = researchPapersList.stream()
+                .map(ResearchPaper::getCitations)
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
+
+        int hIndexValue = 0;
+        while (hIndexValue < citations.size() && citations.get(hIndexValue) >= hIndexValue + 1) {
+            hIndexValue++;
+        }
+        return hIndexValue;
+    }
+
+    @Override
+    public void printPapers(Comparator<ResearchPaper> sorter) {
+        researchPapersList.stream()
+                .sorted(sorter)
+                .forEach(System.out::println);
+    }
 }

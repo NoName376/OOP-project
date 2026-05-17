@@ -1,7 +1,6 @@
 package console.pages;
 
 import console.pagescore.Page;
-
 import core.UniversityKernel;
 import infrastructure.NewsEntry;
 

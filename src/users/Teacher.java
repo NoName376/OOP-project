@@ -3,13 +3,11 @@ package users;
 import academic.AttendanceStatus;
 import academic.Course;
 import academic.Mark;
+import core.UniversityKernel;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import research.IResearcher;
 import research.ResearchDecorator;
-import research.ResearchPaper;
-import core.UniversityKernel;
 
 public class Teacher extends Employee {
     public Teacher(String id, String username, String passwordHash, String firstName, String lastName, String email,

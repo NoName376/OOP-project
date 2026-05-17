@@ -2,7 +2,6 @@ package console.pages;
 
 import console.pagescore.*;
 import core.UniversityKernel;
-
 import users.*;
 import infrastructure.NewsEntry;
 import parsers.*;
