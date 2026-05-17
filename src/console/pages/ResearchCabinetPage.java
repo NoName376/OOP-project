@@ -13,9 +13,11 @@ public class ResearchCabinetPage extends Page {
     public ResearchCabinetPage() {
         super("Research Cabinet");
         addAction("View My Papers", this::viewPapers);
+        addAction("Add Paper", this::addPaper);
         addAction("View Supervisor", this::viewSupervisor);
         addAction("Sort My Papers", this::sortPapersMenu);
         addAction("Join Research Project", this::joinProject);
+        addAction("Publish Paper to Project", this::publishPaperToProject);
         addAction("Cite a Paper", this::citePaper);
         addAction("Manage Paper Authors", this::manageAuthors);
         addAction("View Citation Format", this::viewCitationFormat);
@@ -103,9 +105,6 @@ public class ResearchCabinetPage extends Page {
 
     private void universityResearchMenu() {
         console.getRenderer().renderHeader("University Research Global Info");
-        addAction("All University Papers", this::viewAllUniversityPapers);
-        addAction("Top Cited Researchers", this::viewTopResearchers);
-        
         console.getRenderer().renderMenu(java.util.List.of("All University Papers", "Top Cited Researchers"));
         int choice = console.getInput().read("Option", new parsers.IntegerParser(0, 2));
         if (choice == 1) viewAllUniversityPapers();
@@ -129,7 +128,7 @@ public class ResearchCabinetPage extends Page {
         console.getRenderer().renderHeader("All University Papers");
         console.getRenderer().renderMenu(java.util.List.of("Sort by Date", "Sort by Citations", "Sort by Length"));
         int sortChoice = console.getInput().read("Sort Option", new parsers.IntegerParser(0, 3));
-        
+
         Comparator<ResearchPaper> comparator = switch (sortChoice) {
             case 1 -> Comparator.comparing(ResearchPaper::getDatePublished);
             case 2 -> Comparator.comparingInt(ResearchPaper::getCitations).reversed();
@@ -149,39 +148,50 @@ public class ResearchCabinetPage extends Page {
     private void viewTopResearchers() {
         List<IResearcher> researchers = new ArrayList<>();
         for (users.User u : core.UniversityKernel.getInstance().getUsers()) {
-            if (u instanceof IResearcher) researchers.add((IResearcher) u);
+            if (u instanceof IResearcher && ((IResearcher) u).getHIndex() > 0) {
+                researchers.add((IResearcher) u);
+            }
+            if (u instanceof users.Student) {
+                research.ResearchDecorator rc = ((users.Student) u).getResearchComponent();
+                if (rc != null && !researchers.contains(rc) && rc.getHIndex() > 0) {
+                }
+            }
         }
 
         if (researchers.isEmpty()) {
-            console.getRenderer().renderMessage("No researchers found.");
+            console.getRenderer().renderMessage("No researchers with published papers found.");
             console.getInput().waitForEnter();
             return;
         }
 
         console.getRenderer().renderHeader("Top Researchers Selection");
-        console.getRenderer().renderMenu(java.util.List.of("Global (All Schools)", "By Specific School"));
+        console.getRenderer().renderMenu(java.util.List.of("Global (All Schools)", "By Specific School/Department"));
         int choice = console.getInput().read("Option", new parsers.IntegerParser(0, 2));
 
+        List<IResearcher> filtered = new ArrayList<>(researchers);
         if (choice == 2) {
             String school = console.getInput().readString("Enter School/Department Name (e.g., FIT, BS)");
-            researchers.removeIf(r -> {
-                if (r instanceof users.Employee) return !((users.Employee) r).getDepartment().equalsIgnoreCase(school);
-                return true; // For now, only employees have departments in this system
+            filtered.removeIf(r -> {
+                if (r instanceof users.Employee) {
+                    return !((users.Employee) r).getDepartment().equalsIgnoreCase(school);
+                }
+                return true;
             });
         }
 
-        if (researchers.isEmpty()) {
+        if (filtered.isEmpty()) {
             console.getRenderer().renderError("No researchers found for this criteria.");
             console.getInput().waitForEnter();
             return;
         }
 
-        researchers.sort(Comparator.comparingInt(IResearcher::getHIndex).reversed());
+        filtered.sort(Comparator.comparingInt(IResearcher::getHIndex).reversed());
         console.getRenderer().renderHeader("Top Cited Researchers");
-        for (int i = 0; i < Math.min(researchers.size(), 5); i++) {
-            IResearcher r = researchers.get(i);
+        for (int i = 0; i < Math.min(filtered.size(), 5); i++) {
+            IResearcher r = filtered.get(i);
             String name = (r instanceof users.User) ? ((users.User) r).getFullName() : "Unknown";
-            console.getRenderer().renderData((i + 1) + ". " + name, "h-index: " + r.getHIndex());
+            console.getRenderer().renderData((i + 1) + ". " + name,
+                    "h-index: " + r.getHIndex() + " | Papers: " + r.getPapers().size());
         }
         console.getInput().waitForEnter();
     }
@@ -218,6 +228,107 @@ public class ResearchCabinetPage extends Page {
         console.getInput().waitForEnter();
     }
 
+    private void addPaper() {
+        IResearcher researcher = getResearcher();
+        if (researcher == null) {
+            console.getRenderer().renderError("You are not a registered researcher.");
+            console.getInput().waitForEnter();
+            return;
+        }
+
+        console.getRenderer().renderHeader("Add Research Paper");
+        String name = console.getInput().readString("Paper Title");
+        String journal = console.getInput().readString("Journal Name");
+        String doi = console.getInput().readString("DOI (e.g. 10.1234/example)");
+
+        int pages = console.getInput().read("Number of Pages", new parsers.IntegerParser(1, 10000));
+        int citations = console.getInput().read("Initial Citations", new parsers.IntegerParser(0, 100000));
+
+        console.getRenderer().renderMessage("Enter publication date:");
+        int year = console.getInput().read("Year", new parsers.IntegerParser(1900, 2100));
+        int month = console.getInput().read("Month (1-12)", new parsers.IntegerParser(1, 12));
+        int day = console.getInput().read("Day (1-31)", new parsers.IntegerParser(1, 31));
+        java.time.LocalDate datePublished;
+        try {
+            datePublished = java.time.LocalDate.of(year, month, day);
+        } catch (Exception e) {
+            console.getRenderer().renderError("Invalid date. Using today.");
+            datePublished = java.time.LocalDate.now();
+        }
+
+        java.util.List<String> authors = new java.util.ArrayList<>();
+        String selfName = ((users.User) console.getCurrentUser()).getFullName();
+        authors.add(selfName);
+        console.getRenderer().renderMessage("Author '" + selfName + "' added automatically.");
+        while (true) {
+            String author = console.getInput().readString("Add co-author name (or 'done' to finish)");
+            if (author.equalsIgnoreCase("done")) break;
+            authors.add(author);
+            console.getRenderer().renderMessage("Added: " + author);
+        }
+
+        research.ResearchPaper paper = new research.ResearchPaper(name, authors, journal, pages, datePublished, citations, doi);
+        researcher.addPaper(paper);
+        console.getRenderer().renderSuccess("Paper '" + name + "' added to your profile!");
+        console.getInput().waitForEnter();
+    }
+
+    private void publishPaperToProject() {
+        IResearcher researcher = getResearcher();
+        if (researcher == null) {
+            console.getRenderer().renderError("You are not a registered researcher.");
+            console.getInput().waitForEnter();
+            return;
+        }
+
+        java.util.List<research.ResearchPaper> myPapers = researcher.getPapers();
+        if (myPapers.isEmpty()) {
+            console.getRenderer().renderError("You have no papers to publish. Add a paper first.");
+            console.getInput().waitForEnter();
+            return;
+        }
+
+        java.util.List<research.ResearchProject> projects = core.UniversityKernel.getInstance().getResearchProjects();
+        if (projects.isEmpty()) {
+            console.getRenderer().renderError("No research projects exist in the university.");
+            console.getInput().waitForEnter();
+            return;
+        }
+
+        java.util.List<research.ResearchProject> myProjects = new java.util.ArrayList<>();
+        for (research.ResearchProject p : projects) {
+            if (p.getParticipants().contains(researcher)) myProjects.add(p);
+        }
+
+        if (myProjects.isEmpty()) {
+            console.getRenderer().renderError("You are not a participant in any project. Join a project first.");
+            console.getInput().waitForEnter();
+            return;
+        }
+
+        console.getRenderer().renderHeader("Select Project to Publish In");
+        for (int i = 0; i < myProjects.size(); i++) {
+            console.getRenderer().renderData((i + 1) + ". " + myProjects.get(i).getTopic(),
+                    "Published papers: " + myProjects.get(i).getPublishedPapers().size());
+        }
+        int projChoice = console.getInput().read("Select project (0 to cancel)", new parsers.IntegerParser(0, myProjects.size()));
+        if (projChoice == 0) return;
+        research.ResearchProject project = myProjects.get(projChoice - 1);
+
+        console.getRenderer().renderHeader("Select Paper to Publish");
+        for (int i = 0; i < myPapers.size(); i++) {
+            console.getRenderer().renderData((i + 1) + ". " + myPapers.get(i).getName(),
+                    "Journal: " + myPapers.get(i).getJournal());
+        }
+        int paperChoice = console.getInput().read("Select paper (0 to cancel)", new parsers.IntegerParser(0, myPapers.size()));
+        if (paperChoice == 0) return;
+
+        research.ResearchPaper selected = myPapers.get(paperChoice - 1);
+        project.publishPaper(selected);
+        console.getRenderer().renderSuccess("Paper '" + selected.getName() + "' published to project: " + project.getTopic());
+        console.getInput().waitForEnter();
+    }
+
     private void viewPapers() {
         IResearcher researcher = getResearcher();
         if (researcher == null) {
@@ -231,9 +342,9 @@ public class ResearchCabinetPage extends Page {
             console.getRenderer().renderMessage("No papers published yet.");
         } else {
             for (ResearchPaper p : papers) {
-                console.getRenderer().renderData(p.getName(), 
-                    String.format("Journal: %s | Citations: %d | Date: %s", 
-                    p.getJournal(), p.getCitations(), p.getDatePublished()));
+                console.getRenderer().renderData(p.getName(),
+                        String.format("Journal: %s | Citations: %d | Date: %s",
+                                p.getJournal(), p.getCitations(), p.getDatePublished()));
             }
         }
         console.getInput().waitForEnter();
@@ -251,7 +362,10 @@ public class ResearchCabinetPage extends Page {
         if (supervisor == null) {
             console.getRenderer().renderMessage("No supervisor assigned.");
         } else {
-            console.getRenderer().renderData("Supervisor", "h-index: " + supervisor.getHIndex());
+            String name = (supervisor instanceof users.User) ? ((users.User) supervisor).getFullName() : "Unknown";
+            console.getRenderer().renderData("Name", name);
+            console.getRenderer().renderData("H-Index", String.valueOf(supervisor.getHIndex()));
+            console.getRenderer().renderData("Papers", String.valueOf(supervisor.getPapers().size()));
         }
         console.getInput().waitForEnter();
     }

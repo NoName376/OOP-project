@@ -22,12 +22,12 @@ public class Main {
 
         if (UniversityKernel.getInstance().getUsers().isEmpty()) {
             Admin defaultAdmin = new Admin(
-                "ADM-001",
-                "admin",
-                "admin",
-                "System",
-                "Administrator",
-                "admin@university.edu"
+                    "ADM-001",
+                    "admin",
+                    "admin",
+                    "System",
+                    "Administrator",
+                    "admin@university.edu"
             );
             UniversityKernel.getInstance().getUsers().add(defaultAdmin);
 
@@ -49,8 +49,8 @@ public class Main {
             UniversityKernel.getInstance().getCourses().add(algo);
 
             users.Teacher teacher = UserFactory.createTeacher(
-                "TCH-001", "teacher", "teacher", "Pakita", "Shamoi", "p.shamoi@kbtu.kz",
-                500000, "FIT", users.TeacherTitle.PROFESSOR
+                    "TCH-001", "teacher", "teacher", "Pakita", "Shamoi", "p.shamoi@kbtu.kz",
+                    500000, "FIT", users.TeacherTitle.PROFESSOR
             );
             UniversityKernel.getInstance().getUsers().add(teacher);
             oop.addInstructor(teacher);

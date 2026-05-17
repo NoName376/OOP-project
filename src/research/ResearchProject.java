@@ -16,6 +16,9 @@ public class ResearchProject implements Serializable {
         if (r == null) {
             throw new NonResearcherException("Participant must be a researcher");
         }
+        if (participants.contains(r)) {
+            throw new NonResearcherException("You are already a participant in this project");
+        }
         participants.add(r);
     }
 
