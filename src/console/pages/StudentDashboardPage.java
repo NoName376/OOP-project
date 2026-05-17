@@ -1,12 +1,13 @@
 package console.pages;
 
+import academic.AttendanceStatus;
 import console.pagescore.Page;
 
 import users.Student;
 import academic.Course;
 import academic.Mark;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
 
 public class StudentDashboardPage extends Page {
@@ -93,7 +94,18 @@ public class StudentDashboardPage extends Page {
             console.getRenderer().renderMessage("No courses registered.");
         } else {
             for (Course c : courses) {
-                console.getRenderer().renderData(c.getName(), "Lessons attended: " + student.getAttendance(c));
+                List<AttendanceStatus> records = student.getAttendanceRecords(c);
+                long present = records.stream().filter(s -> s == AttendanceStatus.PRESENT).count();
+                long late    = records.stream().filter(s -> s == AttendanceStatus.LATE).count();
+                long absent  = records.stream().filter(s -> s == AttendanceStatus.ABSENT).count();
+
+                if (records.isEmpty()) {
+                    console.getRenderer().renderData(c.getName(), "No attendance recorded yet");
+                } else {
+                    console.getRenderer().renderData(c.getName(),
+                            "Present: " + present + "  Late: " + late + "  Absent: " + absent
+                                    + "  (Total lessons: " + records.size() + ")");
+                }
             }
         }
         console.getInput().waitForEnter();
@@ -110,7 +122,6 @@ public class StudentDashboardPage extends Page {
         console.getInput().waitForEnter();
     }
 
-
     private void viewCatalog() {
         List<Course> courses = core.UniversityKernel.getInstance().getCourses();
         console.getRenderer().renderHeader("University Course Catalog");
@@ -122,8 +133,8 @@ public class StudentDashboardPage extends Page {
 
         for (int i = 0; i < courses.size(); i++) {
             Course c = courses.get(i);
-            console.getRenderer().renderData((i + 1) + ". " + c.getCourseId(), 
-                String.format("%s | Credits: %d | Status: %s", c.getName(), c.getCredits(), c.getStatus()));
+            console.getRenderer().renderData((i + 1) + ". " + c.getCourseId(),
+                    String.format("%s | Credits: %d | Status: %s", c.getName(), c.getCredits(), c.getStatus()));
         }
 
         int choice = console.getInput().read("Select course to view details (0 to back)", new parsers.IntegerParser(0, courses.size()));
@@ -134,14 +145,14 @@ public class StudentDashboardPage extends Page {
         console.getRenderer().renderData("ID", selected.getCourseId());
         console.getRenderer().renderData("Credits", String.valueOf(selected.getCredits()));
         console.getRenderer().renderData("Status", selected.getStatus().toString());
-        
+
         console.getRenderer().renderMessage("Instructors:");
         if (selected.getInstructors().isEmpty()) {
             console.getRenderer().renderMessage("  No instructors assigned yet.");
         } else {
             for (users.Teacher t : selected.getInstructors()) {
-                console.getRenderer().renderData("  - " + t.getFullName(), 
-                    "Title: " + t.getTitle() + " | Rating: " + String.format("%.1f", t.getAverageRating()));
+                console.getRenderer().renderData("  - " + t.getFullName(),
+                        "Title: " + t.getTitle() + " | Rating: " + String.format("%.1f", t.getAverageRating()));
             }
         }
         console.getInput().waitForEnter();
@@ -150,7 +161,7 @@ public class StudentDashboardPage extends Page {
     private void viewTranscript() {
         Student student = (Student) console.getCurrentUser();
         console.getRenderer().renderHeader("Academic Transcript");
-        
+
         Map<Course, Mark> records = student.getTranscript().getRecords();
         if (records.isEmpty()) {
             console.getRenderer().renderMessage("No records found in transcript.");
@@ -158,14 +169,13 @@ public class StudentDashboardPage extends Page {
             for (var entry : records.entrySet()) {
                 Course c = entry.getKey();
                 Mark m = entry.getValue();
-                console.getRenderer().renderData(c.getName(), 
-                    String.format("1st: %.1f | 2nd: %.1f | Final: %.1f | Total: %.1f", 
-                    m.getFirstAttestation(), m.getSecondAttestation(), m.getFinalExam(), m.getTotal()));
+                console.getRenderer().renderData(c.getName(),
+                        String.format("1st: %.1f | 2nd: %.1f | Final: %.1f | Total: %.1f",
+                                m.getFirstAttestation(), m.getSecondAttestation(), m.getFinalExam(), m.getTotal()));
             }
         }
         console.getInput().waitForEnter();
     }
-
 
     private void viewTeachers() {
         Student student = (Student) console.getCurrentUser();
@@ -181,8 +191,8 @@ public class StudentDashboardPage extends Page {
             for (users.Teacher t : c.getInstructors()) {
                 if (!allTeachers.contains(t)) {
                     allTeachers.add(t);
-                    console.getRenderer().renderData(allTeachers.size() + ". " + t.getFullName(), 
-                        "Title: " + t.getTitle() + " | Rating: " + String.format("%.1f", t.getAverageRating()));
+                    console.getRenderer().renderData(allTeachers.size() + ". " + t.getFullName(),
+                            "Title: " + t.getTitle() + " | Rating: " + String.format("%.1f", t.getAverageRating()));
                 }
             }
         }

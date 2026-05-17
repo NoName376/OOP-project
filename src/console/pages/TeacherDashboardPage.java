@@ -1,16 +1,18 @@
 package console.pages;
 
+import academic.AttendanceStatus;
 import academic.Course;
 import academic.Mark;
 import console.pagescore.Page;
 import core.UniversityKernel;
 import parsers.IntegerParser;
 import parsers.StringParser;
+import users.Employee;
 import users.Student;
 import users.Teacher;
+import users.User;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TeacherDashboardPage extends Page {
@@ -21,7 +23,11 @@ public class TeacherDashboardPage extends Page {
         addAction("My Courses",            this::viewCourses);
         addAction("View Students",         this::viewStudents);
         addAction("Put / Update Marks",    this::manageMarks);
+        addAction("Mark Attendance",       this::markAttendance);
         addAction("Research",              this::openResearch);
+        addAction("Send Message",          this::sendMessage);
+        addAction("Submit Request",        this::submitRequest);
+        addAction("My Inbox",              this::viewInbox);
         addAction("Send Complaint",        this::sendComplaint);
         addAction("Logout",                () -> console.logout());
     }
@@ -51,7 +57,6 @@ public class TeacherDashboardPage extends Page {
         }
         console.getInput().waitForEnter();
     }
-
 
     private void viewStudents() {
         console.getRenderer().renderHeader("View Students");
@@ -141,9 +146,9 @@ public class TeacherDashboardPage extends Page {
                     + "  Total: " + current.getTotal());
         }
 
-        double att1  = console.getInput().read("1st Attestation  (0–30)", new IntegerParser(0, 30));
-        double att2  = console.getInput().read("2nd Attestation  (0–30)", new IntegerParser(0, 30));
-        double finalE= console.getInput().read("Final Exam       (0–40)", new IntegerParser(0, 40));
+        double att1   = console.getInput().read("1st Attestation  (0–30)", new IntegerParser(0, 30));
+        double att2   = console.getInput().read("2nd Attestation  (0–30)", new IntegerParser(0, 30));
+        double finalE = console.getInput().read("Final Exam       (0–40)", new IntegerParser(0, 40));
 
         Mark mark = new Mark(att1, att2, finalE);
         me().putMark(student, course, mark);
@@ -151,6 +156,106 @@ public class TeacherDashboardPage extends Page {
         console.getRenderer().renderSuccess(
                 "Mark saved for " + student.getFullName()
                         + "  →  Total: " + mark.getTotal() + "  " + gradeLabel(mark.getTotal()));
+    }
+
+
+    private void markAttendance() {
+        console.getRenderer().renderHeader("Mark Attendance");
+
+        List<Course> courses = me().viewCourses();
+        if (courses.isEmpty()) {
+            console.getRenderer().renderError("You have no courses assigned.");
+            console.getInput().waitForEnter();
+            return;
+        }
+
+        for (int i = 0; i < courses.size(); i++) {
+            console.getRenderer().renderMessage("[" + (i + 1) + "] " + courses.get(i).getName());
+        }
+        int cIdx = console.getInput().read("Select course", new IntegerParser(1, courses.size())) - 1;
+        Course course = courses.get(cIdx);
+
+        List<Student> enrolled = me().viewStudents(course.getCourseId());
+        if (enrolled.isEmpty()) {
+            console.getRenderer().renderError("No students enrolled in " + course.getName());
+            console.getInput().waitForEnter();
+            return;
+        }
+
+        console.getRenderer().renderHeader("Marking Attendance – " + course.getName());
+        console.getRenderer().renderMessage("For each student: 1=Present  2=Late  3=Absent  0=Skip");
+
+        for (Student s : enrolled) {
+            List<AttendanceStatus> records = s.getAttendanceRecords(course);
+            String last = records.isEmpty() ? "no record" : "last: " + records.get(records.size() - 1);
+            console.getRenderer().renderMessage(s.getFullName() + "  (" + last + ")");
+            int choice = console.getInput().read("Status", new IntegerParser(0, 3));
+            if (choice == 0) continue;
+
+            AttendanceStatus status = switch (choice) {
+                case 1 -> AttendanceStatus.PRESENT;
+                case 2 -> AttendanceStatus.LATE;
+                default -> AttendanceStatus.ABSENT;
+            };
+            me().markAttendance(s, course, status);
+        }
+
+        console.getRenderer().renderSuccess("Attendance recorded for " + course.getName());
+        console.getInput().waitForEnter();
+    }
+
+
+    private void sendMessage() {
+        console.getRenderer().renderHeader("Send Message");
+
+        List<User> allUsers = UniversityKernel.getInstance().getUsers();
+        List<Employee> employees = allUsers.stream()
+                .filter(u -> u instanceof Employee && !u.getId().equals(me().getId()))
+                .map(u -> (Employee) u)
+                .collect(Collectors.toList());
+
+        if (employees.isEmpty()) {
+            console.getRenderer().renderMessage("No other employees found in the system.");
+            console.getInput().waitForEnter();
+            return;
+        }
+
+        for (int i = 0; i < employees.size(); i++) {
+            console.getRenderer().renderData("[" + (i + 1) + "] " + employees.get(i).getFullName(),
+                    employees.get(i).getClass().getSimpleName() + " – " + employees.get(i).getDepartment());
+        }
+
+        int choice = console.getInput().read("Select recipient (0 to cancel)", new IntegerParser(0, employees.size()));
+        if (choice == 0) return;
+
+        Employee recipient = employees.get(choice - 1);
+        String content = console.getInput().readString("Message");
+        me().sendMessage(recipient, content);
+        console.getRenderer().renderSuccess("Message sent to " + recipient.getFullName());
+        console.getInput().waitForEnter();
+    }
+
+
+    private void submitRequest() {
+        console.getRenderer().renderHeader("Submit Request");
+        String content = console.getInput().readString("Describe your request");
+        me().submitRequest(content);
+        console.getRenderer().renderSuccess("Request submitted successfully.");
+        console.getInput().waitForEnter();
+    }
+
+
+    private void viewInbox() {
+        console.getRenderer().renderHeader("My Inbox");
+        List<String> messages = me().getInbox();
+        if (messages.isEmpty()) {
+            console.getRenderer().renderMessage("Your inbox is empty.");
+        } else {
+            for (int i = 0; i < messages.size(); i++) {
+                console.getRenderer().renderMessage("[" + (i + 1) + "] " + messages.get(i));
+            }
+        }
+        console.getInput().waitForEnter();
     }
 
 

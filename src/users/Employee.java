@@ -1,6 +1,7 @@
 package users;
 
 import core.IMessageSender;
+import infrastructure.Request;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,7 @@ public abstract class Employee extends User implements IMessageSender, research.
         this(id, username, passwordHash, firstName, lastName, email, 0, LocalDate.now(), "Default");
     }
 
-    public Employee(String id, String username, String passwordHash, String firstName, String lastName, String email, 
+    public Employee(String id, String username, String passwordHash, String firstName, String lastName, String email,
                     double salary, LocalDate hireDate, String department) {
         super(id, username, passwordHash, firstName, lastName, email);
         this.salary = salary;
@@ -18,6 +19,8 @@ public abstract class Employee extends User implements IMessageSender, research.
         this.department = department;
         this.salaryHistory = new ArrayList<>();
         this.salaryHistory.add(salary);
+        this.inbox = new ArrayList<>();
+        this.requests = new ArrayList<>();
     }
 
     @Override
@@ -50,6 +53,26 @@ public abstract class Employee extends User implements IMessageSender, research.
 
     @Override
     public void sendMessage(Employee receiver, String content) {
+        String message = "From " + getFullName() + ": " + content;
+        receiver.inbox.add(message);
+        core.UniversityKernel.getInstance().getLogger()
+                .log(getFullName() + " sent a message to " + receiver.getFullName());
+    }
+
+    public List<String> getInbox() {
+        return inbox;
+    }
+
+    public void submitRequest(String content) {
+        String requestId = "REQ-" + getId() + "-" + (requests.size() + 1);
+        Request request = new Request(requestId, content);
+        requests.add(request);
+        core.UniversityKernel.getInstance().getLogger()
+                .log(getFullName() + " submitted request: " + content);
+    }
+
+    public List<Request> getRequests() {
+        return requests;
     }
 
     public double getSalary() {
@@ -73,4 +96,6 @@ public abstract class Employee extends User implements IMessageSender, research.
     protected String department;
     protected List<Double> salaryHistory;
     protected research.ResearchDecorator researchComponent;
+    protected List<String> inbox;
+    protected List<Request> requests;
 }

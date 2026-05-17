@@ -1,5 +1,6 @@
 package users;
 
+import academic.AttendanceStatus;
 import academic.Course;
 import academic.Mark;
 import java.time.LocalDate;
@@ -24,6 +25,12 @@ public class Teacher extends Employee {
     public void putMark(Student s, Course c, Mark m) {
         s.addMark(c, m);
         System.out.println("Mark put for student " + s.getFullName() + " in course " + c.getName());
+    }
+
+    public void markAttendance(Student student, Course course, AttendanceStatus status) {
+        student.recordAttendance(course, status);
+        System.out.println("Attendance recorded for " + student.getFullName()
+                + " in " + course.getName() + ": " + status);
     }
 
     public List<Course> viewCourses() {

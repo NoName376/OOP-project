@@ -1,12 +1,15 @@
 package users;
 
+import academic.AttendanceStatus;
 import academic.Course;
 import academic.Mark;
 import academic.Transcript;
 import exceptions.CreditLimitExceededException;
 import exceptions.IndexTooLowException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import research.IResearcher;
 import research.ResearchDecorator;
 import research.ResearchPaper;
@@ -126,6 +129,17 @@ public class Student extends User implements IResearcher {
         return attendance.getOrDefault(c, 0);
     }
 
+    public void recordAttendance(Course c, AttendanceStatus status) {
+        detailedAttendance.computeIfAbsent(c, k -> new ArrayList<>()).add(status);
+        if (status == AttendanceStatus.PRESENT) {
+            attendance.put(c, attendance.getOrDefault(c, 0) + 1);
+        }
+    }
+
+    public List<AttendanceStatus> getAttendanceRecords(Course c) {
+        return detailedAttendance.getOrDefault(c, new ArrayList<>());
+    }
+
     public List<academic.Lesson> getSchedule() {
         return schedule;
     }
@@ -134,14 +148,14 @@ public class Student extends User implements IResearcher {
         java.util.Random rnd = new java.util.Random();
         java.time.DayOfWeek[] days = java.time.DayOfWeek.values();
         List<users.Teacher> teachers = c.getInstructors();
-        
+
         for (academic.Lesson template : c.getLessons()) {
             academic.Lesson assigned = new academic.Lesson(template.getType(), template.getTopic());
             java.time.DayOfWeek day = days[rnd.nextInt(6)];
             String room = "Room " + (100 + rnd.nextInt(400));
             users.Teacher t = teachers.isEmpty() ? null : teachers.get(rnd.nextInt(teachers.size()));
             String time = (8 + rnd.nextInt(10)) + ":00";
-            
+
             assigned.assign(day, room, t, time);
             this.schedule.add(assigned);
         }
@@ -156,6 +170,7 @@ public class Student extends User implements IResearcher {
     private List<Course> currentCourses;
     private IResearcher researchSupervisor;
     private ResearchDecorator researchComponent;
-    private java.util.Map<Course, Integer> attendance = new java.util.HashMap<>();
+    private Map<Course, Integer> attendance = new HashMap<>();
+    private Map<Course, List<AttendanceStatus>> detailedAttendance = new HashMap<>();
     private List<academic.Lesson> schedule = new java.util.ArrayList<>();
 }
