@@ -11,7 +11,6 @@ public class MyProfilePage extends Page {
         addAction("Personal Info", this::viewPersonalInfo);
         addAction("Current Enrolled Courses", this::viewCurrentCourses);
         addAction("Academic Status", this::viewStatus);
-        addAction("Back", () -> {});
     }
 
     private void viewPersonalInfo() {

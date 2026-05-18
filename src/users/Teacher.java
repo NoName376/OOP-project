@@ -63,18 +63,9 @@ public class Teacher extends Employee {
         return ratings.stream().mapToInt(Integer::intValue).average().orElse(0.0);
     }
 
-    public void setResearchComponent(ResearchDecorator researchComponent) {
-        this.researchComponent = researchComponent;
-    }
-
-    public ResearchDecorator getResearchComponent() {
-        return researchComponent;
-    }
-
     public TeacherTitle getTitle() { return title; }
 
     private TeacherTitle title;
     private List<Course> courses;
-    private ResearchDecorator researchComponent;
     private List<Integer> ratings = new ArrayList<>();
 }

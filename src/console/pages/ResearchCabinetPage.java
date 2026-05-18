@@ -8,6 +8,7 @@ import parsers.IntegerParser;
 import research.IResearcher;
 import research.ResearchPaper;
 import users.Student;
+import java.util.stream.Collectors;
 
 public class ResearchCabinetPage extends Page {
     public ResearchCabinetPage() {
@@ -50,19 +51,27 @@ public class ResearchCabinetPage extends Page {
         IResearcher researcher = getResearcher();
         if (researcher == null) return;
 
-        List<ResearchPaper> myPapers = researcher.getPapers();
+        List<ResearchPaper> myPapers = researcher.getPapers().stream()
+                .filter(ResearchPaper::isApproved)
+                .collect(Collectors.toList());
         if (myPapers.isEmpty()) {
-            console.getRenderer().renderError("You need at least one paper to cite others.");
+            console.getRenderer().renderError("You need at least one approved paper to cite others.");
             return;
         }
 
         List<ResearchPaper> allPapers = new ArrayList<>();
         for (users.User u : core.UniversityKernel.getInstance().getUsers()) {
-            if (u instanceof IResearcher) allPapers.addAll(((IResearcher) u).getPapers());
+            if (u instanceof IResearcher) {
+                for (ResearchPaper p : ((IResearcher) u).getPapers()) {
+                    if (p.isApproved()) {
+                        allPapers.add(p);
+                    }
+                }
+            }
         }
 
         if (allPapers.isEmpty()) {
-            console.getRenderer().renderMessage("No papers available in the university.");
+            console.getRenderer().renderMessage("No approved papers available in the university.");
             return;
         }
 
@@ -77,6 +86,7 @@ public class ResearchCabinetPage extends Page {
         if (targetChoice == 0) return;
 
         allPapers.get(targetChoice - 1).addCitation(myPapers.get(myChoice - 1));
+        utils.DataStorage.save();
         console.getRenderer().renderMessage("Citation added successfully!");
         console.getInput().waitForEnter();
     }
@@ -148,52 +158,133 @@ public class ResearchCabinetPage extends Page {
     private void viewTopResearchers() {
         List<IResearcher> researchers = new ArrayList<>();
         for (users.User u : core.UniversityKernel.getInstance().getUsers()) {
-            if (u instanceof IResearcher && ((IResearcher) u).getHIndex() > 0) {
-                researchers.add((IResearcher) u);
-            }
-            if (u instanceof users.Student) {
-                research.ResearchDecorator rc = ((users.Student) u).getResearchComponent();
-                if (rc != null && !researchers.contains(rc) && rc.getHIndex() > 0) {
+            if (u instanceof IResearcher) {
+                IResearcher r = (IResearcher) u;
+                if (u instanceof users.Student) {
+                    if (((users.Student) u).getResearchComponent() != null && !researchers.contains(r)) {
+                        researchers.add(r);
+                    }
+                } else if (u instanceof users.Employee) {
+                    if (((users.Employee) u).getResearchComponent() != null && !researchers.contains(r)) {
+                        researchers.add(r);
+                    }
+                } else if (!researchers.contains(r)) {
+                    researchers.add(r);
                 }
             }
         }
 
         if (researchers.isEmpty()) {
-            console.getRenderer().renderMessage("No researchers with published papers found.");
+            console.getRenderer().renderMessage("No researchers found in the university.");
             console.getInput().waitForEnter();
             return;
         }
 
-        console.getRenderer().renderHeader("Top Researchers Selection");
-        console.getRenderer().renderMenu(java.util.List.of("Global (All Schools)", "By Specific School/Department"));
-        int choice = console.getInput().read("Option", new parsers.IntegerParser(0, 2));
+        console.getRenderer().renderHeader("Top Researchers Board");
+        console.getRenderer().renderMenu(java.util.List.of(
+            "Top Researchers by H-Index (Global)", 
+            "Top Researchers by H-Index (By School)",
+            "Top Cited Researcher of the Year (Among All Schools)",
+            "Top Cited Researcher of a Specific School (Total Citations)"
+        ));
+        int choice = console.getInput().read("Option", new parsers.IntegerParser(0, 4));
+        if (choice == 0) return;
 
-        List<IResearcher> filtered = new ArrayList<>(researchers);
-        if (choice == 2) {
-            String school = console.getInput().readString("Enter School/Department Name (e.g., FIT, BS)");
-            filtered.removeIf(r -> {
-                if (r instanceof users.Employee) {
-                    return !((users.Employee) r).getDepartment().equalsIgnoreCase(school);
+        if (choice == 1) {
+            List<IResearcher> filtered = new ArrayList<>(researchers);
+            filtered.sort(Comparator.comparingInt(IResearcher::getHIndex).reversed());
+            console.getRenderer().renderHeader("Top Cited Researchers by H-Index (Global)");
+            printResearcherList(filtered);
+        } else if (choice == 2) {
+            String school = console.getInput().readString("Enter School/Department Name (e.g., SITE, BS)");
+            List<IResearcher> filtered = filterBySchool(researchers, school);
+            if (filtered.isEmpty()) {
+                console.getRenderer().renderError("No researchers found for school: " + school);
+            } else {
+                filtered.sort(Comparator.comparingInt(IResearcher::getHIndex).reversed());
+                console.getRenderer().renderHeader("Top Researchers by H-Index in " + school);
+                printResearcherList(filtered);
+            }
+        } else if (choice == 3) {
+            int year = console.getInput().read("Enter Publication Year (e.g., 2026)", new parsers.IntegerParser(1900, 2100));
+            IResearcher topResearcher = null;
+            int maxCitations = -1;
+            
+            for (IResearcher r : researchers) {
+                int citationsInYear = r.getPapers().stream()
+                        .filter(p -> p.isApproved() && p.getDatePublished().getYear() == year)
+                        .mapToInt(ResearchPaper::getCitations)
+                        .sum();
+                if (citationsInYear > maxCitations && citationsInYear > 0) {
+                    maxCitations = citationsInYear;
+                    topResearcher = r;
                 }
-                return true;
-            });
+            }
+            
+            console.getRenderer().renderHeader("Top Cited Researcher of the Year " + year);
+            if (topResearcher == null) {
+                console.getRenderer().renderMessage("No papers with citations found for the year " + year);
+            } else {
+                String name = (topResearcher instanceof users.User) ? ((users.User) topResearcher).getFullName() : "Unknown";
+                console.getRenderer().renderData("Name", name);
+                console.getRenderer().renderData("Citations in " + year, String.valueOf(maxCitations));
+                console.getRenderer().renderData("Total Papers in " + year, String.valueOf(
+                    topResearcher.getPapers().stream()
+                        .filter(p -> p.isApproved() && p.getDatePublished().getYear() == year)
+                        .count()
+                ));
+            }
+        } else if (choice == 4) {
+            String school = console.getInput().readString("Enter School/Department Name (e.g., SITE, BS)");
+            List<IResearcher> filtered = filterBySchool(researchers, school);
+            
+            if (filtered.isEmpty()) {
+                console.getRenderer().renderError("No researchers found for school: " + school);
+            } else {
+                IResearcher topResearcher = null;
+                int maxCitations = -1;
+                
+                for (IResearcher r : filtered) {
+                    int totalCites = r.getPapers().stream()
+                            .filter(ResearchPaper::isApproved)
+                            .mapToInt(ResearchPaper::getCitations)
+                            .sum();
+                    if (totalCites > maxCitations) {
+                        maxCitations = totalCites;
+                        topResearcher = r;
+                    }
+                }
+                
+                console.getRenderer().renderHeader("Top Cited Researcher in " + school);
+                if (topResearcher == null || maxCitations == 0) {
+                    console.getRenderer().renderMessage("No citations found for researchers in " + school);
+                } else {
+                    String name = (topResearcher instanceof users.User) ? ((users.User) topResearcher).getFullName() : "Unknown";
+                    console.getRenderer().renderData("Name", name);
+                    console.getRenderer().renderData("Total Citations", String.valueOf(maxCitations));
+                }
+            }
         }
+        console.getInput().waitForEnter();
+    }
 
-        if (filtered.isEmpty()) {
-            console.getRenderer().renderError("No researchers found for this criteria.");
-            console.getInput().waitForEnter();
-            return;
+    private List<IResearcher> filterBySchool(List<IResearcher> list, String school) {
+        List<IResearcher> res = new ArrayList<>();
+        for (IResearcher r : list) {
+            if (r instanceof users.Employee && ((users.Employee) r).getDepartment().equalsIgnoreCase(school)) {
+                res.add(r);
+            }
         }
+        return res;
+    }
 
-        filtered.sort(Comparator.comparingInt(IResearcher::getHIndex).reversed());
-        console.getRenderer().renderHeader("Top Cited Researchers");
-        for (int i = 0; i < Math.min(filtered.size(), 5); i++) {
-            IResearcher r = filtered.get(i);
+    private void printResearcherList(List<IResearcher> list) {
+        for (int i = 0; i < Math.min(list.size(), 5); i++) {
+            IResearcher r = list.get(i);
             String name = (r instanceof users.User) ? ((users.User) r).getFullName() : "Unknown";
             console.getRenderer().renderData((i + 1) + ". " + name,
                     "h-index: " + r.getHIndex() + " | Papers: " + r.getPapers().size());
         }
-        console.getInput().waitForEnter();
     }
 
     private void joinProject() {
@@ -268,8 +359,10 @@ public class ResearchCabinetPage extends Page {
         }
 
         research.ResearchPaper paper = new research.ResearchPaper(name, authors, journal, pages, datePublished, citations, doi);
+        paper.setApproved(false);
         researcher.addPaper(paper);
-        console.getRenderer().renderSuccess("Paper '" + name + "' added to your profile!");
+        utils.DataStorage.save();
+        console.getRenderer().renderSuccess("Paper '" + name + "' submitted successfully! It is now pending approval from the administration.");
         console.getInput().waitForEnter();
     }
 
@@ -281,9 +374,11 @@ public class ResearchCabinetPage extends Page {
             return;
         }
 
-        java.util.List<research.ResearchPaper> myPapers = researcher.getPapers();
+        java.util.List<research.ResearchPaper> myPapers = researcher.getPapers().stream()
+                .filter(research.ResearchPaper::isApproved)
+                .collect(Collectors.toList());
         if (myPapers.isEmpty()) {
-            console.getRenderer().renderError("You have no papers to publish. Add a paper first.");
+            console.getRenderer().renderError("You have no approved papers to publish. Add and get approval first.");
             console.getInput().waitForEnter();
             return;
         }
@@ -325,6 +420,7 @@ public class ResearchCabinetPage extends Page {
 
         research.ResearchPaper selected = myPapers.get(paperChoice - 1);
         project.publishPaper(selected);
+        utils.DataStorage.save();
         console.getRenderer().renderSuccess("Paper '" + selected.getName() + "' published to project: " + project.getTopic());
         console.getInput().waitForEnter();
     }
@@ -342,7 +438,8 @@ public class ResearchCabinetPage extends Page {
             console.getRenderer().renderMessage("No papers published yet.");
         } else {
             for (ResearchPaper p : papers) {
-                console.getRenderer().renderData(p.getName(),
+                String status = p.isApproved() ? " [APPROVED]" : " [PENDING]";
+                console.getRenderer().renderData(p.getName() + status,
                         String.format("Journal: %s | Citations: %d | Date: %s",
                                 p.getJournal(), p.getCitations(), p.getDatePublished()));
             }

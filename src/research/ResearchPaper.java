@@ -14,6 +14,7 @@ public class ResearchPaper implements Serializable {
     private int citations;
     private String doi;
     private final List<ResearchPaper> citedBy = new ArrayList<>();
+    private boolean approved = true;
 
     public ResearchPaper(String name, List<String> authors, String journal, int pages, LocalDate datePublished, int citations, String doi) {
         this.name = name;
@@ -23,6 +24,14 @@ public class ResearchPaper implements Serializable {
         this.datePublished = datePublished;
         this.citations = citations;
         this.doi = doi;
+    }
+
+    public boolean isApproved() {
+        return approved;
+    }
+
+    public void setApproved(boolean approved) {
+        this.approved = approved;
     }
 
     public String getName() { 

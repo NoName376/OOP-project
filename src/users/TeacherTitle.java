@@ -1,5 +1,5 @@
 package users;
 
 public enum TeacherTitle {
-    TUTOR, LECTURER, PROFESSOR
+    TUTOR, LECTURER, SENIOR_LECTURER, PROFESSOR
 }

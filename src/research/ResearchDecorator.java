@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import users.User;
 
-public class ResearchDecorator implements IResearcher {
+public class ResearchDecorator implements IResearcher, java.io.Serializable {
     private final User targetUser;
     private final List<ResearchPaper> researchPapersList;
     private final List<ResearchProject> activeProjectsList;
@@ -44,6 +44,7 @@ public class ResearchDecorator implements IResearcher {
         }
         
         List<Integer> citations = researchPapersList.stream()
+                .filter(ResearchPaper::isApproved)
                 .map(ResearchPaper::getCitations)
                 .sorted(Comparator.reverseOrder())
                 .collect(Collectors.toList());

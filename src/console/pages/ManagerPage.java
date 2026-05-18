@@ -29,6 +29,7 @@ public class ManagerPage extends Page {
         addAction("Assign Course to Teacher",     this::assignCourseToTeacher);
         addAction("Approve Course Registrations", this::approveCourseRegistrations);
         addAction("View Employee Requests",       this::viewEmployeeRequests);
+        addAction("Approve Research Papers",      this::approveResearchPapers);
         addAction("Manage News",                  () -> new NewsPage().display());
         addAction("Logout",                       () -> console.logout());
     }
@@ -278,6 +279,80 @@ public class ManagerPage extends Page {
             }
             case SIGNED_BY_RECTOR ->
                     console.getRenderer().renderMessage("This request is already fully signed.");
+        }
+        console.getInput().waitForEnter();
+    }
+
+    private void approveResearchPapers() {
+        console.getRenderer().renderHeader("Approve Research Papers");
+
+        class PendingPaper {
+            research.IResearcher researcher;
+            research.ResearchPaper paper;
+            PendingPaper(research.IResearcher researcher, research.ResearchPaper paper) {
+                this.researcher = researcher;
+                this.paper = paper;
+            }
+        }
+
+        List<PendingPaper> pendingPapers = new java.util.ArrayList<>();
+        for (User u : UniversityKernel.getInstance().getUsers()) {
+            if (u instanceof research.IResearcher) {
+                research.IResearcher res = (research.IResearcher) u;
+                for (research.ResearchPaper p : res.getPapers()) {
+                    if (!p.isApproved()) {
+                        pendingPapers.add(new PendingPaper(res, p));
+                    }
+                }
+            }
+        }
+
+        if (pendingPapers.isEmpty()) {
+            console.getRenderer().renderMessage("No pending research papers found.");
+            console.getInput().waitForEnter();
+            return;
+        }
+
+        for (int i = 0; i < pendingPapers.size(); i++) {
+            PendingPaper pp = pendingPapers.get(i);
+            String authorName = (pp.researcher instanceof User) ? ((User) pp.researcher).getFullName() : "Unknown";
+            console.getRenderer().renderData("[" + (i + 1) + "] " + pp.paper.getName(),
+                    "Submitted by: " + authorName + " | Journal: " + pp.paper.getJournal());
+        }
+
+        int choice = console.getInput().read("Select paper to review (0 to cancel)",
+                new IntegerParser(0, pendingPapers.size()));
+        if (choice == 0) return;
+
+        PendingPaper selected = pendingPapers.get(choice - 1);
+        String authorName = (selected.researcher instanceof User) ? ((User) selected.researcher).getFullName() : "Unknown";
+
+        console.getRenderer().renderHeader("Review Paper Details");
+        console.getRenderer().renderData("Title", selected.paper.getName());
+        console.getRenderer().renderData("Submitted by", authorName);
+        console.getRenderer().renderData("Journal", selected.paper.getJournal());
+        console.getRenderer().renderData("DOI", selected.paper.getDoi());
+        console.getRenderer().renderData("Pages", String.valueOf(selected.paper.getArticleLength()));
+        console.getRenderer().renderData("Publication Date", selected.paper.getDatePublished().toString());
+        console.getRenderer().renderData("Citations", String.valueOf(selected.paper.getCitations()));
+        console.getRenderer().renderData("Authors List", String.join(", ", selected.paper.getAuthors()));
+
+        console.getRenderer().renderHeader("Action Menu");
+        console.getRenderer().renderMenu(List.of("Approve Paper", "Reject & Delete Paper"));
+        int actionChoice = console.getInput().read("Option", new IntegerParser(0, 2));
+
+        if (actionChoice == 1) {
+            selected.paper.setApproved(true);
+            UniversityKernel.getInstance().logAction(console.getCurrentUser(), 
+                    "approved research paper: " + selected.paper.getName() + " by " + authorName);
+            utils.DataStorage.save();
+            console.getRenderer().renderSuccess("Research paper approved successfully!");
+        } else if (actionChoice == 2) {
+            selected.researcher.getPapers().remove(selected.paper);
+            UniversityKernel.getInstance().logAction(console.getCurrentUser(), 
+                    "rejected research paper: " + selected.paper.getName() + " by " + authorName);
+            utils.DataStorage.save();
+            console.getRenderer().renderSuccess("Research paper rejected and deleted.");
         }
         console.getInput().waitForEnter();
     }
