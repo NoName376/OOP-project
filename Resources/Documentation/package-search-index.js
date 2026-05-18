@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"academic"},{"l":"All Packages","u":"allpackages-index.html","k":"18"},{"l":"application"},{"l":"console.core"},{"l":"console.pages"},{"l":"console.pagescore"},{"l":"core"},{"l":"exceptions"},{"l":"infrastructure"},{"l":"parsers"},{"l":"research"},{"l":"users"},{"l":"utils"}];updateSearchResults();
