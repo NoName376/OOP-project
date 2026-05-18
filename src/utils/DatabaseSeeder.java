@@ -310,6 +310,7 @@ public class DatabaseSeeder {
 
         Student phdBauyrzhan = UserFactory.createStudent("23D010204", "b_amangeldy", "123", "Bauyrzhan", "Amangeldiyev", "b.amangeldiyev@kbtu.kz", DegreeType.PHD, 2);
         phdBauyrzhan.setResearchComponent(new ResearchDecorator(phdBauyrzhan));
+        phdBauyrzhan.setResearchComponent(new ResearchDecorator(phdBauyrzhan));
         UniversityKernel.getInstance().getUsers().add(phdBauyrzhan);
 
         try {

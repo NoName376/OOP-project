@@ -2,6 +2,7 @@ package console.pages;
 
 import console.pagescore.Page;
 import core.UniversityKernel;
+import infrastructure.NewsEntry;
 import infrastructure.Request;
 import infrastructure.RequestStatus;
 import users.Employee;
@@ -30,8 +31,17 @@ public class ManagerPage extends Page {
         addAction("Approve Course Registrations", this::approveCourseRegistrations);
         addAction("View Employee Requests",       this::viewEmployeeRequests);
         addAction("Approve Research Papers",      this::approveResearchPapers);
-        addAction("Manage News",                  () -> new NewsPage().display());
+        addAction("Manage News",                  this::sendNews);
         addAction("Logout",                       () -> console.logout());
+    }
+
+    private void sendNews() {
+        String title = console.getInput().read("Title", new StringParser(false));
+        String content = console.getInput().read("Content", new StringParser(false));
+
+        UniversityKernel.getInstance().getNews().add(new NewsEntry(title, content));
+        console.getRenderer().renderSuccess("News published successfully!");
+        console.getInput().waitForEnter();
     }
 
 
